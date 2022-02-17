@@ -167,7 +167,7 @@ include_directories(
 
 
 include_directories(src/track_target)
-add_executable(track_target_server src/track_target/track_target_server.cpp src/track_target_server/main.cpp)
+add_executable(track_target_server src/track_target/track_target_server.cpp src/track_target/main.cpp)
 target_link_libraries(track_target_server moveit_lib tm_lib ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 ## Rename C++ executable without prefix
@@ -198,7 +198,7 @@ target_link_libraries(track_target_server moveit_lib tm_lib ${catkin_LIBRARIES} 
 #   scripts/my_python_script
 #   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # )
-catkin_install_python(PROGRAMS scripts/simple_fsm.py
+catkin_install_python(PROGRAMS scripts/gpm.py
       DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
