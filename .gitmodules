@@ -5,3 +5,9 @@
 [submodule "src/amr"]
 	path = src/amr
 	url = git@github.com:KeV1NBR/amr.git
+[submodule "src/process/library/moveit_lib"]
+	path = src/process/library/moveit_lib
+	url = git@github.com:KeV1NBR/moveit_lib.git
+[submodule "src/process/library/tm_lib"]
+	path = src/process/library/tm_lib
+	url = git@github.com:KeV1NBR/tm_lib.git
