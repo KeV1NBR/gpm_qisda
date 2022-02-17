@@ -166,13 +166,9 @@ include_directories(
 # add_executable(${PROJECT_NAME}_node src/fsm_struct_node.cpp)
 
 
-include_directories(src/cartesian_move)
-add_executable(cartesian_move_server src/cartesian_move/cartesian_move_server.cpp src/cartesian_move/main.cpp)
-target_link_libraries(cartesian_move_server moveit_lib tm_lib ${catkin_LIBRARIES} ${Boost_LIBRARIES})
-
-include_directories(src/joint_move)
-add_executable(joint_move_server src/joint_move/joint_move_server.cpp src/joint_move/main.cpp)
-target_link_libraries(joint_move_server moveit_lib  tm_lib ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+include_directories(src/track_target)
+add_executable(track_target_server src/track_target/track_target_server.cpp src/track_target_server/main.cpp)
+target_link_libraries(track_target_server moveit_lib tm_lib ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
