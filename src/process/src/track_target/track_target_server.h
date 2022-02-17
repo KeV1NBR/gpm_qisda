@@ -19,6 +19,13 @@ class TrackTargetServer {
    private:
     void executeCallBack(const process::fsmGoalConstPtr& goal);
 
+    int init();
+    int targerEstimate();
+    int tracking();
+    int grip();
+    int finish();
+    int aborted();
+
     STATE state;
     std::vector<double> error;
     bool isFinish;

@@ -30,16 +30,19 @@ void TrackTargetServer::executeCallBack(const process::fsmGoalConstPtr& goal) {
     while (isFinish == false) {
         switch (state) {
             case INIT: {
+                ret = init();
                 ROS_INFO("STATE EXTRANGE: INIT");
                 state = TARGET_ESTIMATE;
                 break;
             }
             case TARGET_ESTIMATE: {
+                ret = targerEstimate();
                 ROS_INFO("STATE EXTRANGE: TARGET_ESTIMATE");
                 state = TRACKING;
                 break;
             }
             case TRACKING: {
+                ret = tracking();
                 ROS_INFO("STATE EXTRANGE: TRACKING");
                 if (error[0] + error[1] > 5) {
                     state = TARGET_ESTIMATE;
@@ -49,11 +52,13 @@ void TrackTargetServer::executeCallBack(const process::fsmGoalConstPtr& goal) {
                 break;
             }
             case GRIP: {
+                ret = grip();
                 ROS_INFO("STATE EXTRANGE: GRIP");
                 state = FINISH;
                 break;
             }
             case FINISH: {
+                ret = finish();
                 isFinish = true;
                 ROS_INFO("STATE EXTRANGE: FINISH");
                 ROS_INFO("WAITING FOR REQUEST");
@@ -61,6 +66,7 @@ void TrackTargetServer::executeCallBack(const process::fsmGoalConstPtr& goal) {
                 break;
             }
             case ABORTED: {
+                ret = aborted();
                 isFinish = true;
                 ROS_ERROR("ABORTED");
                 server.setAborted();
@@ -79,3 +85,10 @@ void TrackTargetServer::executeCallBack(const process::fsmGoalConstPtr& goal) {
         }
     }
 }
+
+int TrackTargetServer::init() { return 0; }
+int TrackTargetServer::targerEstimate() { return 0; }
+int TrackTargetServer::tracking() { return 0; }
+int TrackTargetServer::grip() { return 0; }
+int TrackTargetServer::finish() { return 0; }
+int TrackTargetServer::aborted() { return 0; }
