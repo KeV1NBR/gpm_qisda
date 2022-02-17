@@ -11,57 +11,71 @@ TrackTargetServer::TrackTargetServer(string actionName)
       name(actionName),
       arm("manipulator"),
       tm(nh) {
-    //    arm.setAccel(100);
-    //  arm.setSpeed(5);
+    arm.setAccel(100);
+    arm.setSpeed(5);
+
+    error.resize(2);
+    state = INIT;
+    isFinish = false;
+
+    ROS_INFO("WAITING FOR REQUEST");
     server.start();
 }
 
 TrackTargetServer::~TrackTargetServer() { server.shutdown(); }
 
 void TrackTargetServer::executeCallBack(const process::fsmGoalConstPtr& goal) {
-    vector<double> homeJ = {180, 0, 90, 0, 90, 0};
-    vector<double> pos1 = {10, 0, 0, 0, 0, 0};
-    vector<double> pos2 = {0, -10, 0, 0, 0, 0};
-    vector<double> pos3 = {0, 0, -10, 0, 0, 0};
-    vector<double> pos4 = {0, 0, 0, -10, 0, 0};
-    vector<double> pos5 = {0, 0, 0, 0, 10, 0};
-    vector<double> pos6 = {0, 0, 0, 0, 0, 10};
-    arm.move(homeJ, 100, Arm::MoveType::Absolute, Arm::CtrlType::PTP,
-             Arm::CoordType::JOINT);
-    tm.waitForIdle();
-    arm.move(pos1, 100, Arm::MoveType::Relative, Arm::CtrlType::PTP,
-             Arm::CoordType::JOINT);
-    tm.waitForIdle();
-    arm.move(homeJ, 100, Arm::MoveType::Absolute, Arm::CtrlType::PTP,
-             Arm::CoordType::JOINT);
-    tm.waitForIdle();
-    arm.move(pos2, 100, Arm::MoveType::Relative, Arm::CtrlType::PTP,
-             Arm::CoordType::JOINT);
-    tm.waitForIdle();
-    arm.move(homeJ, 100, Arm::MoveType::Absolute, Arm::CtrlType::PTP,
-             Arm::CoordType::JOINT);
-    tm.waitForIdle();
-    arm.move(pos3, 100, Arm::MoveType::Relative, Arm::CtrlType::PTP,
-             Arm::CoordType::JOINT);
-    tm.waitForIdle();
-    arm.move(homeJ, 100, Arm::MoveType::Absolute, Arm::CtrlType::PTP,
-             Arm::CoordType::JOINT);
-    tm.waitForIdle();
-    arm.move(pos4, 100, Arm::MoveType::Relative, Arm::CtrlType::PTP,
-             Arm::CoordType::JOINT);
-    tm.waitForIdle();
-    arm.move(homeJ, 100, Arm::MoveType::Absolute, Arm::CtrlType::PTP,
-             Arm::CoordType::JOINT);
-    tm.waitForIdle();
-    arm.move(pos5, 100, Arm::MoveType::Relative, Arm::CtrlType::PTP,
-             Arm::CoordType::JOINT);
-    tm.waitForIdle();
-    arm.move(homeJ, 100, Arm::MoveType::Absolute, Arm::CtrlType::PTP,
-             Arm::CoordType::JOINT);
-    tm.waitForIdle();
-    arm.move(pos6, 100, Arm::MoveType::Relative, Arm::CtrlType::PTP,
-             Arm::CoordType::JOINT);
-    tm.waitForIdle();
+    isFinish = false;
+    int ret = 0;
+    while (isFinish == false) {
+        switch (state) {
+            case INIT: {
+                ROS_INFO("STATE EXTRANGE: INIT");
+                state = TARGET_ESTIMATE;
+                break;
+            }
+            case TARGET_ESTIMATE: {
+                ROS_INFO("STATE EXTRANGE: TARGET_ESTIMATE");
+                state = TRACKING;
+                break;
+            }
+            case TRACKING: {
+                ROS_INFO("STATE EXTRANGE: TRACKING");
+                if (error[0] + error[1] > 5) {
+                    state = TARGET_ESTIMATE;
+                } else {
+                    state = GRIP;
+                }
+                break;
+            }
+            case GRIP: {
+                ROS_INFO("STATE EXTRANGE: GRIP");
+                state = FINISH;
+                break;
+            }
+            case FINISH: {
+                isFinish = true;
+                ROS_INFO("STATE EXTRANGE: FINISH");
+                ROS_INFO("WAITING FOR REQUEST");
+                server.setSucceeded();
+                break;
+            }
+            case ABORTED: {
+                isFinish = true;
+                ROS_ERROR("ABORTED");
+                server.setAborted();
 
-    server.setSucceeded();
+                break;
+            }
+            default: {
+                isFinish = true;
+                ROS_ERROR("error state entry");
+                server.setAborted();
+                break;
+            }
+        }
+        if (ret < 0) {
+            state = ABORTED;
+        }
+    }
 }
