@@ -1,0 +1,7 @@
+[submodule "src/tmr_ros1"]
+	path = src/tmr_ros1
+	url = https://github.com/TechmanRobotInc/tmr_ros1.git
+	branch = noetic
+[submodule "src/amr"]
+	path = src/amr
+	url = git@github.com:KeV1NBR/amr.git
