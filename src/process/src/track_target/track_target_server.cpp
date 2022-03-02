@@ -11,7 +11,7 @@ TrackTargetServer::TrackTargetServer(string actionName)
       name(actionName),
       arm("manipulator"),
       tm(nh) {
-    arm.setAccel(100);
+    arm.setAccel(50);
     arm.setSpeed(5);
 
     error.resize(2);
@@ -86,7 +86,14 @@ void TrackTargetServer::executeCallBack(const process::fsmGoalConstPtr& goal) {
     }
 }
 
-int TrackTargetServer::init() { return 0; }
+int TrackTargetServer::init() {
+    int ret = 0;
+    vector<double> position;
+    ret = arm.move(position, 100, MoveType::Absolute, CtrlType::PTP,
+                   CoordType::JOINT);
+
+    return ret;
+}
 int TrackTargetServer::targerEstimate() { return 0; }
 int TrackTargetServer::tracking() { return 0; }
 int TrackTargetServer::grip() { return 0; }

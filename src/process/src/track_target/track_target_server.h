@@ -8,6 +8,7 @@
 #include "process/fsmAction.h"
 #include "process/fsmGoal.h"
 #include "tm.h"
+#include "poco.h"
 
 enum STATE { INIT, TARGET_ESTIMATE, TRACKING, GRIP, FINISH, ABORTED };
 

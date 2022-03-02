@@ -32,9 +32,22 @@ include_directories(${CURL_INCLUDE_DIR})
 find_package(nlohmann_json 3.2.0 REQUIRED)
 
 
+set(OpenCV_STATIC OFF CACHE BOOL "Using OpenCV static linking library")
+find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
+
+find_package(realsense2 REQUIRED)
+include_directories(${REALSENSE_INCLUDE_DIR})
+
+find_package(yaml-cpp REQUIRED)
+
+find_package(OpenMP)
+
 set(DEPS_PATH
     ${CMAKE_CURRENT_SOURCE_DIR}/library/moveit_lib
     ${CMAKE_CURRENT_SOURCE_DIR}/library/tm_lib
+    ${CMAKE_CURRENT_SOURCE_DIR}/library/pid
+    ${CMAKE_CURRENT_SOURCE_DIR}/library/realsense_lib
 )
 include_directories(${DEPS_PATH})
 foreach(DEPS_PATH ${DEPS_PATH})
@@ -168,7 +181,7 @@ include_directories(
 
 include_directories(src/track_target)
 add_executable(track_target_server src/track_target/track_target_server.cpp src/track_target/main.cpp)
-target_link_libraries(track_target_server moveit_lib tm_lib ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(track_target_server moveit_lib tm_lib pid realsense_lib yaml-cpp ${OpenCV_LIBS} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

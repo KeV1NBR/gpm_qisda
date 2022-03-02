@@ -11,3 +11,9 @@
 [submodule "src/process/library/tm_lib"]
 	path = src/process/library/tm_lib
 	url = git@github.com:KeV1NBR/tm_lib.git
+[submodule "src/process/library/realsense_lib"]
+	path = src/process/library/realsense_lib
+	url = git@github.com:KeV1NBR/realsense_lib.git
+[submodule "src/process/library/pid"]
+	path = src/process/library/pid
+	url = git@github.com:KeV1NBR/pid.git
