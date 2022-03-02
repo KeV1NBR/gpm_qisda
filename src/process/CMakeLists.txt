@@ -180,8 +180,13 @@ include_directories(
 
 
 include_directories(src/track_target)
+
 add_executable(track_target_server src/track_target/track_target_server.cpp src/track_target/main.cpp)
+
 target_link_libraries(track_target_server moveit_lib tm_lib pid realsense_lib yaml-cpp ${OpenCV_LIBS} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+
+add_dependencies(track_target_server ${${PROJECT_NAME}_EXPORTED_TARGETS})
+
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

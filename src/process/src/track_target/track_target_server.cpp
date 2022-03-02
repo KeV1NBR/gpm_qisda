@@ -89,13 +89,27 @@ void TrackTargetServer::executeCallBack(const process::fsmGoalConstPtr& goal) {
 int TrackTargetServer::init() {
     int ret = 0;
     vector<double> position;
-    ret = arm.move(position, 100, MoveType::Absolute, CtrlType::PTP,
-                   CoordType::JOINT);
+    ret = arm.move(position, 100, Arm::MoveType::Absolute, Arm::CtrlType::PTP,
+                   Arm::CoordType::JOINT);
 
     return ret;
 }
 int TrackTargetServer::targerEstimate() { return 0; }
-int TrackTargetServer::tracking() { return 0; }
+int TrackTargetServer::tracking() {
+    int ret = 0;
+    vector<double> position = {error[0], 0, error[1], 0, 0, 0};
+    ret = arm.move(position, 10, Arm::MoveType::Relative, Arm::CtrlType::PTP,
+                   Arm::CoordType::CARTESIAN);
+    return ret;
+}
 int TrackTargetServer::grip() { return 0; }
-int TrackTargetServer::finish() { return 0; }
+
+int TrackTargetServer::finish() {
+    int ret = 0;
+    vector<double> position;
+    ret = arm.move(position, 10, Arm::MoveType::Absolute, Arm::CtrlType::PTP,
+                   Arm::CoordType::JOINT);
+
+    return ret;
+}
 int TrackTargetServer::aborted() { return 0; }
