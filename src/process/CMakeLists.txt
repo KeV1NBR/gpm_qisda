@@ -43,6 +43,8 @@ find_package(yaml-cpp REQUIRED)
 
 find_package(OpenMP)
 
+find_package(Poco COMPONENTS Net)
+
 set(DEPS_PATH
     ${CMAKE_CURRENT_SOURCE_DIR}/library/moveit_lib
     ${CMAKE_CURRENT_SOURCE_DIR}/library/tm_lib
@@ -183,7 +185,7 @@ include_directories(src/track_target)
 
 add_executable(track_target_server src/track_target/track_target_server.cpp src/track_target/main.cpp)
 
-target_link_libraries(track_target_server moveit_lib tm_lib pid realsense_lib yaml-cpp ${OpenCV_LIBS} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(track_target_server moveit_lib tm_lib pid realsense_lib yaml-cpp ${OpenCV_LIBS} ${Poco_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 add_dependencies(track_target_server ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
