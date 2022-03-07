@@ -17,3 +17,6 @@
 [submodule "src/process/library/pid"]
 	path = src/process/library/pid
 	url = git@github.com:KeV1NBR/pid.git
+[submodule "src/process/library/sucker"]
+	path = src/process/library/sucker
+	url = git@github.com:KeV1NBR/sucker.git
