@@ -20,3 +20,6 @@
 [submodule "src/process/library/sucker"]
 	path = src/process/library/sucker
 	url = git@github.com:KeV1NBR/sucker.git
+[submodule "src/process/library/object_degree"]
+	path = src/process/library/object_degree
+	url = git@github.com:KeV1NBR/object_degree.git

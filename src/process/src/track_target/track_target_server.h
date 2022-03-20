@@ -34,6 +34,8 @@ class TrackTargetServer {
 
     ros::NodeHandle nh;
     actionlib::SimpleActionServer<process::fsmAction> server;
+    ros::ServiceClient yoloClient;
+
     std::string name;
     Arm arm;
     Tm tm;
