@@ -7,8 +7,10 @@
 #include <vector>
 
 #include "arm.h"
+#include "object_degree.h"
 #include "process/fsmAction.h"
 #include "process/fsmGoal.h"
+#include "realsense.h"
 #include "tm.h"
 
 enum STATE { INIT, TARGET_ESTIMATE, TRACKING, GRIP, FINISH, ABORTED };
@@ -39,4 +41,8 @@ class TrackTargetServer {
     std::string name;
     Arm arm;
     Tm tm;
+
+    realsense::RealSense rs;
+
+    Detector_deg detector;
 };

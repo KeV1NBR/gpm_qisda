@@ -45,6 +45,24 @@ find_package(OpenMP)
 
 find_package(Poco COMPONENTS Net)
 
+find_path(DARKNET_INCLUDE_DIRS yolo_v2_class.hpp
+    "/usr/include"
+    "/usr/local/include"
+    "/home/qrobot/api/darknet/include"
+    )
+
+find_library(DARKNET_LIBRARIES libdarknet.so
+    "/usr/lib"
+    "/usr/local/lib"
+    "/home/qrobot/api/darknet"
+    )
+
+include_directories(
+# include
+  ${catkin_INCLUDE_DIRS}
+  ${DARKNET_INCLUDE_DIRS}
+  )
+
 set(DEPS_PATH
     ${CMAKE_CURRENT_SOURCE_DIR}/library/moveit_lib
     ${CMAKE_CURRENT_SOURCE_DIR}/library/tm_lib
@@ -161,11 +179,6 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories(
-# include
-  ${catkin_INCLUDE_DIRS}
-)
-
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
 #   src/${PROJECT_NAME}/fsm_struct.cpp
@@ -186,7 +199,7 @@ include_directories(src/track_target)
 
 add_executable(track_target_server src/track_target/track_target_server.cpp src/track_target/main.cpp)
 
-target_link_libraries(track_target_server moveit_lib tm_lib pid realsense_lib object_degree yaml-cpp ${OpenCV_LIBS} ${Poco_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(track_target_server moveit_lib tm_lib pid realsense_lib object_degree yaml-cpp  ${DARKNET_LIBRARIES} ${realsense2_LIBRARY} ${OpenCV_LIBS} ${Poco_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 add_dependencies(track_target_server ${${PROJECT_NAME}_EXPORTED_TARGETS})
 

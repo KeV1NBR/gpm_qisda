@@ -1,20 +1,36 @@
 #include "track_target_server.h"
 
+#include "object_degree.h"
 #include "process/fsmAction.h"
 #include "process/fsmActionResult.h"
+#include "realsense.h"
 
 using namespace std;
+using namespace realsense;
+using namespace cv;
 
 TrackTargetServer::TrackTargetServer(string actionName)
     : server(nh, actionName,
              boost::bind(&TrackTargetServer::executeCallBack, this, _1), false),
       name(actionName),
       arm("manipulator"),
-      tm(nh) {
+      tm(nh),
+      detector("~/model/yolov4/yolov4-tiny.cfg",
+               "~/model/yolov4/yolov4-tiny.weights") {
     arm.setAccel(50);
     arm.setSpeed(5);
 
-    error.resize(2);
+    Config config;
+    rs.connect(config);
+
+    if (rs.depth_supports(RS2_OPTION_MIN_DISTANCE))
+        rs.set_depth_option(RS2_OPTION_MIN_DISTANCE, 200);
+    rs.set_align_stream(RS2_STREAM_COLOR);
+    rs.set_colorizer_option(RS2_OPTION_COLOR_SCHEME, 3);
+    rs.enable_hole_filling_filter(true);
+    rs.set_hole_filling_filter_option(RS2_OPTION_HOLES_FILL, 1);
+
+    error.resize(3);
     state = INIT;
     isFinish = false;
 
@@ -24,7 +40,7 @@ TrackTargetServer::TrackTargetServer(string actionName)
 
 TrackTargetServer::~TrackTargetServer() { server.shutdown(); }
 
-void TrackTargetServer::executeCallBack(const process::fsmGoalConstPtr& goal) {
+void TrackTargetServer::executeCallBack(const process::fsmGoalConstPtr &goal) {
     isFinish = false;
     int ret = 0;
     while (isFinish == false) {
@@ -94,10 +110,31 @@ int TrackTargetServer::init() {
 
     return ret;
 }
-int TrackTargetServer::targerEstimate() { return 0; }
+int TrackTargetServer::targerEstimate() {
+    Mat color;
+    Mat depth_image;
+    Mat pointCloud;
+
+    rs.update();
+    rs.retrieve_color_image(color);
+    rs.retrieve_depth_image(depth_image);
+    rs.retrieve_xyz_measure(pointCloud);
+
+    std::vector<bbox_t_deg> predict =
+        detector.detectWithDeg(color, depth_image);
+
+    int centerX = predict[0].x + (predict[0].w / 2);
+    int centerY = predict[0].y + (predict[0].h / 2);
+
+    this->error[0] = 1000 * pointCloud.at<cv::Vec3f>(centerY, centerX)[0];
+    this->error[1] = -1000 * pointCloud.at<cv::Vec3f>(centerY, centerX)[1];
+    this->error[2] = -1000 * pointCloud.at<cv::Vec3f>(centerY, centerX)[2];
+
+    return 0;
+}
 int TrackTargetServer::tracking() {
     int ret = 0;
-    vector<double> position = {error[0], 0, error[1], 0, 0, 0};
+    vector<double> position = {error[0], error[1], 0, 0, 0, 0};
     ret = arm.move(position, 10, Arm::MoveType::Relative, Arm::CtrlType::PTP,
                    Arm::CoordType::CARTESIAN);
     return ret;
