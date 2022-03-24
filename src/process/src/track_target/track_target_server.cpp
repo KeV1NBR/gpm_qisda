@@ -31,6 +31,8 @@ TrackTargetServer::TrackTargetServer(string actionName)
     rs.set_hole_filling_filter_option(RS2_OPTION_HOLES_FILL, 1);
 
     error.resize(3);
+    orientation = .0;
+
     state = INIT;
     isFinish = false;
 
@@ -52,19 +54,19 @@ void TrackTargetServer::executeCallBack(const process::fsmGoalConstPtr &goal) {
                 break;
             }
             case TARGET_ESTIMATE: {
-                ret = targerEstimate();
+                ret = targetEstimate();
                 ROS_INFO("STATE EXTRANGE: TARGET_ESTIMATE");
-                state = TRACKING;
+                if (error[0] + error[1] > 5) {
+                    state = TRACKING;
+                } else {
+                    state = GRIP;
+                }
                 break;
             }
             case TRACKING: {
                 ret = tracking();
                 ROS_INFO("STATE EXTRANGE: TRACKING");
-                if (error[0] + error[1] > 5) {
-                    state = TARGET_ESTIMATE;
-                } else {
-                    state = GRIP;
-                }
+                state = TARGET_ESTIMATE;
                 break;
             }
             case GRIP: {
@@ -107,10 +109,11 @@ int TrackTargetServer::init() {
     vector<double> position;
     ret = arm.move(position, 100, Arm::MoveType::Absolute, Arm::CtrlType::PTP,
                    Arm::CoordType::JOINT);
+    tm.waitForIdle();
 
     return ret;
 }
-int TrackTargetServer::targerEstimate() {
+int TrackTargetServer::targetEstimate() {
     Mat color;
     Mat depth_image;
     Mat pointCloud;
@@ -129,6 +132,7 @@ int TrackTargetServer::targerEstimate() {
     this->error[0] = 1000 * pointCloud.at<cv::Vec3f>(centerY, centerX)[0];
     this->error[1] = -1000 * pointCloud.at<cv::Vec3f>(centerY, centerX)[1];
     this->error[2] = -1000 * pointCloud.at<cv::Vec3f>(centerY, centerX)[2];
+    this->orientation = predict[0].degree;
 
     return 0;
 }
@@ -137,9 +141,19 @@ int TrackTargetServer::tracking() {
     vector<double> position = {error[0], error[1], 0, 0, 0, 0};
     ret = arm.move(position, 10, Arm::MoveType::Relative, Arm::CtrlType::PTP,
                    Arm::CoordType::CARTESIAN);
+    tm.waitForIdle();
     return ret;
 }
-int TrackTargetServer::grip() { return 0; }
+int TrackTargetServer::grip() {
+    int ret = 0;
+    vector<double> position = {0, 0, -1 * error[3] + 20, 0, 0, orientation};
+    ret = arm.move(position, 10, Arm::MoveType::Relative, Arm::CtrlType::PTP,
+                   Arm::CoordType::CARTESIAN);
+    tm.waitForIdle();
+
+    tm.gripClose();
+    return 0;
+}
 
 int TrackTargetServer::finish() {
     int ret = 0;

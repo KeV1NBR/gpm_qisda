@@ -24,7 +24,7 @@ class TrackTargetServer {
     void executeCallBack(const process::fsmGoalConstPtr& goal);
 
     int init();
-    int targerEstimate();
+    int targetEstimate();
     int tracking();
     int grip();
     int finish();
@@ -32,6 +32,7 @@ class TrackTargetServer {
 
     STATE state;
     std::vector<double> error;
+    double orientation;
     bool isFinish;
 
     ros::NodeHandle nh;
