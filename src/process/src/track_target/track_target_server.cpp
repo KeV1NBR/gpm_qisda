@@ -151,7 +151,16 @@ int TrackTargetServer::grip() {
                    Arm::CoordType::CARTESIAN);
     tm.waitForIdle();
 
+    position = {0, 0, -50, 0, 0, 0};
+    ret = arm.move(position, 10, Arm::MoveType::Relative, Arm::CtrlType::PTP,
+                   Arm::CoordType::CARTESIAN);
+    tm.waitForIdle();
+
     tm.gripClose();
+    position = {0, 0, 50, 0, 0, 0};
+    ret = arm.move(position, 10, Arm::MoveType::Relative, Arm::CtrlType::PTP,
+                   Arm::CoordType::CARTESIAN);
+    tm.waitForIdle();
     return 0;
 }
 
