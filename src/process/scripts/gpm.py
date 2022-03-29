@@ -2,7 +2,7 @@ import rospy
 import smach
 from smach_ros import SimpleActionState
 
-from fsm_struct.msg import *
+from process.msg import *
 
 class Init(smach.State):
     def __init__(self):

@@ -109,12 +109,11 @@ endforeach()
 ##   * uncomment the generate_messages entry below
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
-## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+# Generate messages in the 'msg' folder
+ add_message_files(
+   FILES
+   mission.msg
+ )
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -202,6 +201,14 @@ add_executable(track_target_server src/track_target/track_target_server.cpp src/
 target_link_libraries(track_target_server moveit_lib tm_lib pid realsense_lib object_degree yaml-cpp  ${DARKNET_LIBRARIES} ${realsense2_LIBRARY} ${OpenCV_LIBS} ${Poco_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 add_dependencies(track_target_server ${${PROJECT_NAME}_EXPORTED_TARGETS})
+
+include_directories(src/idle)
+
+add_executable(idle_server src/idle/idle_server.cpp src/idle/main.cpp)
+
+target_link_libraries(idle_server ${Poco_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+
+add_dependencies(idle_server ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 
 ## Rename C++ executable without prefix
