@@ -7,6 +7,9 @@
 
 #include <vector>
 
+#include "ros/publisher.h"
+#include "ros/subscriber.h"
+
 class IdleServer {
    public:
     IdleServer(std::string actionName);
@@ -16,4 +19,6 @@ class IdleServer {
     void executeCallBack(const process::fsmGoalConstPtr& goal);
     ros::NodeHandle nh;
     actionlib::SimpleActionServer<process::fsmAction> server;
+
+    ros::Publisher missionPublisher;
 };
