@@ -34,8 +34,8 @@ void IdleServer::executeCallBack(const process::fsmGoalConstPtr &goal) {
     std::vector<int> receive;
     process::mission msg;
     msg.mission_name = "unknown";
-    msg.object_id = -1;
-    msg.agv_pos = -1;
+    msg.object_id = 999;
+    msg.agv_pos = 999;
 
     missionPublisher.publish(msg);
 
@@ -80,8 +80,8 @@ void IdleServer::executeCallBack(const process::fsmGoalConstPtr &goal) {
     msg.agv_pos = receive[2];
 
     missionPublisher.publish(msg);
-    server.setSucceeded();
-
     ROS_INFO("get mission : %s, object:%d, agv_pos: %d",
              msg.mission_name.c_str(), msg.object_id, msg.agv_pos);
+
+    server.setSucceeded();
 }

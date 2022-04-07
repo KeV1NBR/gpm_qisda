@@ -210,6 +210,13 @@ target_link_libraries(idle_server ${Poco_LIBRARIES} ${catkin_LIBRARIES} ${Boost_
 
 add_dependencies(idle_server ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
+include_directories(src/navigate)
+
+add_executable(navigate_server src/navigate/navigate.cpp src/navigate/main.cpp)
+
+target_link_libraries(navigate_server ${Poco_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+
+add_dependencies(navigate_server ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
