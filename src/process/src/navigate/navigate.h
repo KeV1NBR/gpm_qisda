@@ -24,4 +24,6 @@ class NavigateServer {
     ros::Publisher navigatePublisher;
 
     geometry_msgs::Twist goalPosition;
+
+    bool check;
 };

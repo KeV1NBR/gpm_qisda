@@ -1,0 +1,43 @@
+agv_pos:
+  '1':
+    rz: 30
+    x: 30
+    y: 30
+  '2':
+    rz: 30
+    x: 30
+    y: 30
+  '3':
+    rz: 30
+    x: 30
+    y: 30
+  '4':
+    rz: 30
+    x: 30
+    y: 30
+  '5':
+    rz: 30
+    x: 30
+    y: 30
+  '6':
+    rz: 30
+    x: 30
+    y: 30
+  '7':
+    rz: 30
+    x: 30
+    y: 30
+  '8':
+    rz: 30
+    x: 30
+    y: 30
+rosdistro: 'noetic
+
+  '
+roslaunch:
+  uris:
+    host_qrobot_nuc11phi7__44813: http://qrobot-NUC11PHi7:44813/
+rosversion: '1.15.14
+
+  '
+run_id: 63b58238-b66e-11ec-a3c5-1d1873dd1aa0

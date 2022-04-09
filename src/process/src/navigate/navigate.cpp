@@ -18,19 +18,25 @@ NavigateServer::NavigateServer(string actionName)
     navigatePublisher =
         nh.advertise<geometry_msgs::Twist>("/agv/navigate", 1000);
 
+    check = false;
     server.start();
 }
 
 NavigateServer::~NavigateServer() { server.shutdown(); }
 
 void NavigateServer::executeCallBack(const process::fsmGoalConstPtr& goal) {
+    check = false;
     spinOnce();
     this_thread::sleep_for(chrono::milliseconds(100));
-    ROS_INFO("position : x: %d, y: %d, rz: %d", int(goalPosition.linear.x),
-             int(goalPosition.linear.y), int(goalPosition.angular.z));
-    navigatePublisher.publish(this->goalPosition);
-
-    server.setSucceeded();
+    if (check == true) {
+        ROS_INFO("position : x: %d, y: %d, rz: %d", int(goalPosition.linear.x),
+                 int(goalPosition.linear.y), int(goalPosition.angular.z));
+        navigatePublisher.publish(this->goalPosition);
+        server.setSucceeded();
+    } else {
+        ROS_ERROR("error query!!");
+        server.setAborted();
+    }
 }
 void NavigateServer::missionCallBack(
     const process::mission::ConstPtr& mission) {
@@ -38,10 +44,11 @@ void NavigateServer::missionCallBack(
     string paramName = "/agv_pos/" + to_string(agv_pos) + "/";
 
     if (agv_pos != 999) {
+        check = true;
+
+        nh.getParam(paramName + "x", goalPosition.linear.x);
+        nh.getParam(paramName + "y", goalPosition.linear.y);
+        nh.getParam(paramName + "rz", goalPosition.angular.z);
         ROS_INFO("move agv to position %d", agv_pos);
     }
-
-    nh.getParam(paramName + "x", goalPosition.linear.x);
-    nh.getParam(paramName + "y", goalPosition.linear.y);
-    nh.getParam(paramName + "rz", goalPosition.angular.z);
 }

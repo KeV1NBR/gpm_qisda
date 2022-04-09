@@ -38,7 +38,7 @@ def main():
     with mainFsm:
         # Add states to the container
         smach.StateMachine.add('INIT', Init(),
-                               transitions={'succeed':'IDLE',
+                               transitions={'succeed':'TRACK_TARGET',
                                             'failed':'failed'})
 
         smach.StateMachine.add('IDLE',

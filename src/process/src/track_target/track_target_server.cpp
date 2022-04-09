@@ -15,8 +15,8 @@ TrackTargetServer::TrackTargetServer(string actionName)
       name(actionName),
       arm("manipulator"),
       tm(nh),
-      detector("~/model/yolov4/yolov4-tiny.cfg",
-               "~/model/yolov4/yolov4-tiny.weights") {
+      detector("/home/qrobot/model/yolov4/yolov4-tiny.cfg",
+               "/home/qrobot/model/yolov4/yolov4-tiny.weights") {
     arm.setAccel(50);
     arm.setSpeed(5);
 
@@ -45,12 +45,15 @@ TrackTargetServer::~TrackTargetServer() { server.shutdown(); }
 void TrackTargetServer::executeCallBack(const process::fsmGoalConstPtr &goal) {
     isFinish = false;
     int ret = 0;
+
+    state = INIT;
+
     while (isFinish == false) {
         switch (state) {
             case INIT: {
                 ret = init();
                 ROS_INFO("STATE EXTRANGE: INIT");
-                state = TARGET_ESTIMATE;
+                state = FINISH;
                 break;
             }
             case TARGET_ESTIMATE: {
@@ -106,8 +109,11 @@ void TrackTargetServer::executeCallBack(const process::fsmGoalConstPtr &goal) {
 
 int TrackTargetServer::init() {
     int ret = 0;
-    vector<double> position;
-    ret = arm.move(position, 100, Arm::MoveType::Absolute, Arm::CtrlType::PTP,
+
+    tm.gripperOpen();
+    vector<double> position = {237.729, 5.10428, 61.8752,
+                               23.0111, 90.0007, -32.2791};
+    ret = arm.move(position, 50, Arm::MoveType::Absolute, Arm::CtrlType::PTP,
                    Arm::CoordType::JOINT);
     tm.waitForIdle();
 
@@ -166,9 +172,16 @@ int TrackTargetServer::grip() {
 
 int TrackTargetServer::finish() {
     int ret = 0;
-    vector<double> position;
-    ret = arm.move(position, 10, Arm::MoveType::Absolute, Arm::CtrlType::PTP,
+
+    tm.gripperClose();
+
+    vector<double> homeJ = {180, -33.8431, 105.578, -26.74, 90, 0};
+    ret = arm.move(homeJ, 50, Arm::MoveType::Absolute, Arm::CtrlType::PTP,
                    Arm::CoordType::JOINT);
+    for (auto p : arm.getJointPosition()) {
+        cout << p << " ";
+    }
+    tm.waitForIdle();
 
     return ret;
 }
