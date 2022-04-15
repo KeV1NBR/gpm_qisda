@@ -60,12 +60,6 @@ def main():
                                    'aborted': 'failed',
                                    'preempted': 'failed'})
 
-        smach.StateMachine.add('ARRANGEMENT_PUT',
-                               SimpleActionState('arrangement_put', fsmAction),
-                                  {'succeeded':'IDLE',
-                                   'aborted': 'failed',
-                                   'preempted': 'failed'})
-
         smach.StateMachine.add('FINISH', Finish(),
                                transitions={'succeed':'end',
                                             'failed':'failed'})

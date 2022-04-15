@@ -113,6 +113,7 @@ endforeach()
  add_message_files(
    FILES
    mission.msg
+   store.msg
  )
 
 ## Generate services in the 'srv' folder

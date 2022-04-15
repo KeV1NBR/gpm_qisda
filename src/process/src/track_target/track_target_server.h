@@ -10,10 +10,12 @@
 #include "object_degree.h"
 #include "process/fsmAction.h"
 #include "process/fsmGoal.h"
+#include "process/store.h"
 #include "realsense.h"
 #include "tm.h"
+#include "yolo_v2_class.hpp"
 
-enum STATE { INIT, TARGET_ESTIMATE, TRACKING, GRIP, FINISH, ABORTED };
+enum STATE { INIT, TARGET_ESTIMATE, TRACKING, GRIP, PUT, FINISH, ABORTED };
 
 class TrackTargetServer {
    public:
@@ -29,6 +31,7 @@ class TrackTargetServer {
     int grip();
     int finish();
     int aborted();
+    int put();
 
     STATE state;
     std::vector<double> error;
@@ -46,4 +49,10 @@ class TrackTargetServer {
     realsense::RealSense rs;
 
     Detector_deg detector;
+
+    process::store goodsList;
+    ros::Subscriber goodsSubscriber;
+    ros::Publisher goodsPublisher;
+
+    void goodsCallBack(const process::store::ConstPtr& goods);
 };

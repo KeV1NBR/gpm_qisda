@@ -1,8 +1,14 @@
 #include "track_target_server.h"
 
+#include <omp.h>
+
+#include <chrono>
+#include <thread>
+
 #include "object_degree.h"
 #include "process/fsmAction.h"
 #include "process/fsmActionResult.h"
+#include "process/store.h"
 #include "realsense.h"
 
 using namespace std;
@@ -30,11 +36,22 @@ TrackTargetServer::TrackTargetServer(string actionName)
     rs.enable_hole_filling_filter(true);
     rs.set_hole_filling_filter_option(RS2_OPTION_HOLES_FILL, 1);
 
+    goodsSubscriber = nh.subscribe<process::store>(
+        "/gpm/goods", 10, &TrackTargetServer::goodsCallBack, this);
+
+    goodsPublisher = nh.advertise<process::store>("/gpm/goods", 1000);
+
     error.resize(3);
     orientation = .0;
 
     state = INIT;
     isFinish = false;
+
+    vector<int> goods = {-1, -1, -1, -1, -1, -1};
+    goodsList.goods = goods;
+
+    this_thread::sleep_for(chrono::milliseconds(100));
+    goodsPublisher.publish(goodsList);
 
     ROS_INFO("WAITING FOR REQUEST");
     server.start();
@@ -42,23 +59,23 @@ TrackTargetServer::TrackTargetServer(string actionName)
 
 TrackTargetServer::~TrackTargetServer() { server.shutdown(); }
 
-void TrackTargetServer::executeCallBack(const process::fsmGoalConstPtr &goal) {
+void TrackTargetServer::executeCallBack(const process::fsmGoalConstPtr& goal) {
     isFinish = false;
     int ret = 0;
 
-    state = INIT;
+    state = PUT;
 
     while (isFinish == false) {
         switch (state) {
             case INIT: {
-                ret = init();
                 ROS_INFO("STATE EXTRANGE: INIT");
+                ret = init();
                 state = FINISH;
                 break;
             }
             case TARGET_ESTIMATE: {
-                ret = targetEstimate();
                 ROS_INFO("STATE EXTRANGE: TARGET_ESTIMATE");
+                ret = targetEstimate();
                 if (error[0] + error[1] > 5) {
                     state = TRACKING;
                 } else {
@@ -67,29 +84,35 @@ void TrackTargetServer::executeCallBack(const process::fsmGoalConstPtr &goal) {
                 break;
             }
             case TRACKING: {
-                ret = tracking();
                 ROS_INFO("STATE EXTRANGE: TRACKING");
+                ret = tracking();
                 state = TARGET_ESTIMATE;
                 break;
             }
             case GRIP: {
-                ret = grip();
                 ROS_INFO("STATE EXTRANGE: GRIP");
+                ret = grip();
+                state = PUT;
+                break;
+            }
+            case PUT: {
+                ROS_INFO("STATE EXTRANGE: PUT");
+                ret = put();
                 state = FINISH;
                 break;
             }
             case FINISH: {
+                ROS_INFO("STATE EXTRANGE: FINISH");
                 ret = finish();
                 isFinish = true;
-                ROS_INFO("STATE EXTRANGE: FINISH");
                 ROS_INFO("WAITING FOR REQUEST");
                 server.setSucceeded();
                 break;
             }
             case ABORTED: {
+                ROS_ERROR("ABORTED");
                 ret = aborted();
                 isFinish = true;
-                ROS_ERROR("ABORTED");
                 server.setAborted();
 
                 break;
@@ -167,7 +190,49 @@ int TrackTargetServer::grip() {
     ret = arm.move(position, 10, Arm::MoveType::Relative, Arm::CtrlType::PTP,
                    Arm::CoordType::CARTESIAN);
     tm.waitForIdle();
+
+    vector<double> homeJ = {180, -33.8431, 105.578, -26.74, 90, 0};
+    ret = arm.move(homeJ, 50, Arm::MoveType::Absolute, Arm::CtrlType::PTP,
+                   Arm::CoordType::JOINT);
+    tm.waitForIdle();
+
     return 0;
+}
+
+int TrackTargetServer::put() {
+    ros::spinOnce();
+    int goalNum = -1;
+    int ret = 0;
+
+    this_thread::sleep_for(chrono::milliseconds(100));
+    for (int i = 0; i < goodsList.goods.size(); i++) {
+        if (goodsList.goods[i] == -1) {
+            goalNum = i;
+            break;
+        }
+    }
+    if (goalNum != -1) {
+        std::vector<double> goalPosition = {0, 0, 0, -45, 0, 0};
+        string paramName = "/arm_pos/put/" + to_string(goalNum) + "/";
+        nh.getParam(paramName + "x", goalPosition[0]);
+        nh.getParam(paramName + "y", goalPosition[1]);
+        nh.getParam(paramName + "z", goalPosition[2]);
+        nh.getParam(paramName + "rz", goalPosition[5]);
+        cout << goalNum << endl;
+        for (auto g : goalPosition) {
+            cout << g << ", ";
+        }
+
+        // ret = arm.move(goalPosition, 50, Arm::MoveType::Relative,
+        //               Arm::CtrlType::PTP, Arm::CoordType::CARTESIAN);
+        // tm.waitForIdle();
+        // tm.gripperOpen();
+
+    } else {
+        ROS_ERROR("none position to put");
+        return -1;
+    }
+    return ret;
 }
 
 int TrackTargetServer::finish() {
@@ -178,11 +243,12 @@ int TrackTargetServer::finish() {
     vector<double> homeJ = {180, -33.8431, 105.578, -26.74, 90, 0};
     ret = arm.move(homeJ, 50, Arm::MoveType::Absolute, Arm::CtrlType::PTP,
                    Arm::CoordType::JOINT);
-    for (auto p : arm.getJointPosition()) {
-        cout << p << " ";
-    }
     tm.waitForIdle();
 
     return ret;
 }
 int TrackTargetServer::aborted() { return 0; }
+
+void TrackTargetServer::goodsCallBack(const process::store::ConstPtr& goods) {
+    this->goodsList = *goods;
+}
