@@ -5,21 +5,19 @@
 #include <vector>
 
 #include "arm.h"
-#include "object_degree.h"
 #include "process/fsmAction.h"
 #include "process/fsmGoal.h"
 #include "process/mission.h"
 #include "process/store.h"
 #include "realsense.h"
 #include "tm.h"
-#include "yolo_v2_class.hpp"
 
-enum STATE { INIT, TARGET_ESTIMATE, TRACKING, GRIP, PUT, FINISH, ABORTED };
+enum STATE { INIT, TARGET_ESTIMATE, TRACKING, PUT, FINISH, ABORTED };
 
-class TrackTargetServer {
+class PutServer {
    public:
-    TrackTargetServer(std::string actionName);
-    ~TrackTargetServer();
+    PutServer(std::string actionName);
+    ~PutServer();
 
    private:
     void executeCallBack(const process::fsmGoalConstPtr& goal);
@@ -46,8 +44,6 @@ class TrackTargetServer {
     Tm tm;
 
     realsense::RealSense rs;
-
-    Detector_deg detector;
 
     process::store goodsList;
     ros::Subscriber goodsSubscriber;

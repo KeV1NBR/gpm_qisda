@@ -1,7 +1,9 @@
 #include "idle_server.h"
 
+#include <chrono>
 #include <regex>
 #include <sstream>
+#include <thread>
 
 #include "process/mission.h"
 
@@ -82,6 +84,8 @@ void IdleServer::executeCallBack(const process::fsmGoalConstPtr &goal) {
     missionPublisher.publish(msg);
     ROS_INFO("get mission : %s, object:%d, agv_pos: %d",
              msg.mission_name.c_str(), msg.object_id, msg.agv_pos);
+
+    //    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 
     server.setSucceeded();
 }

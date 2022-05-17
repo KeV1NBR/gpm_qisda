@@ -1,4 +1,4 @@
-#include "track_target_server.h"
+#include "put_server.h"
 
 #include <omp.h>
 
@@ -15,14 +15,12 @@ using namespace std;
 using namespace realsense;
 using namespace cv;
 
-TrackTargetServer::TrackTargetServer(string actionName)
-    : server(nh, actionName,
-             boost::bind(&TrackTargetServer::executeCallBack, this, _1), false),
+PutServer::PutServer(string actionName)
+    : server(nh, actionName, boost::bind(&PutServer::executeCallBack, this, _1),
+             false),
       name(actionName),
       arm("manipulator"),
-      tm(nh),
-      detector("/home/qrobot/model/yolov4/yolov4-tiny.cfg",
-               "/home/qrobot/model/yolov4/yolov4-tiny_20000.weights") {
+      tm(nh) {
     arm.setAccel(50);
     arm.setSpeed(50);
 
@@ -40,12 +38,12 @@ TrackTargetServer::TrackTargetServer(string actionName)
     rs.set_hole_filling_filter_option(RS2_OPTION_HOLES_FILL, 1);
 
     goodsSubscriber = nh.subscribe<process::store>(
-        "/gpm/goods", 10, &TrackTargetServer::goodsCallBack, this);
+        "/gpm/goods", 10, &PutServer::goodsCallBack, this);
 
     goodsPublisher = nh.advertise<process::store>("/gpm/goods", 1000);
 
     missionSubscriber = nh.subscribe<process::mission>(
-        "/gpm/mission", 1, &TrackTargetServer::missionCallBack, this);
+        "/gpm/mission", 1, &PutServer::missionCallBack, this);
 
     error.resize(3);
     orientation = .0;
@@ -55,19 +53,13 @@ TrackTargetServer::TrackTargetServer(string actionName)
     state = INIT;
     isFinish = false;
 
-    vector<int> goods = {-1, -1, -1, -1, -1, -1};
-    goodsList.goods = goods;
-
-    this_thread::sleep_for(chrono::milliseconds(100));
-    goodsPublisher.publish(goodsList);
-
     ROS_INFO("WAITING FOR REQUEST");
     server.start();
 }
 
-TrackTargetServer::~TrackTargetServer() { server.shutdown(); }
+PutServer::~PutServer() { server.shutdown(); }
 
-void TrackTargetServer::executeCallBack(const process::fsmGoalConstPtr& goal) {
+void PutServer::executeCallBack(const process::fsmGoalConstPtr& goal) {
     isFinish = false;
     int ret = 0;
 
@@ -87,7 +79,7 @@ void TrackTargetServer::executeCallBack(const process::fsmGoalConstPtr& goal) {
                 if (fabs(error[0] + error[1]) > 0.005 || targetNum == -1) {
                     state = TRACKING;
                 } else {
-                    state = GRIP;
+                    state = PUT;
                 }
                 break;
             }
@@ -95,12 +87,6 @@ void TrackTargetServer::executeCallBack(const process::fsmGoalConstPtr& goal) {
                 ROS_INFO("STATE EXTRANGE: TRACKING");
                 ret = tracking();
                 state = TARGET_ESTIMATE;
-                break;
-            }
-            case GRIP: {
-                ROS_INFO("STATE EXTRANGE: GRIP");
-                ret = grip();
-                state = PUT;
                 break;
             }
             case PUT: {
@@ -138,7 +124,7 @@ void TrackTargetServer::executeCallBack(const process::fsmGoalConstPtr& goal) {
     }
 }
 
-int TrackTargetServer::init() {
+int PutServer::init() {
     int ret = 0;
 
     tm.gripperOpen();
@@ -150,7 +136,7 @@ int TrackTargetServer::init() {
 
     return ret;
 }
-int TrackTargetServer::targetEstimate() {
+int PutServer::targetEstimate() {
     Mat color;
     Mat depth_image;
     Mat pointCloud;
@@ -186,7 +172,7 @@ int TrackTargetServer::targetEstimate() {
              error[0], error[1], orientation);
     return 0;
 }
-int TrackTargetServer::tracking() {
+int PutServer::tracking() {
     int ret = 0;
     vector<double> position = {error[0], error[1], 0, 0, 0, 0};
     ret = arm.move(position, 10, Arm::MoveType::Relative, Arm::CtrlType::PTP,
@@ -194,7 +180,7 @@ int TrackTargetServer::tracking() {
     tm.waitForIdle();
     return ret;
 }
-int TrackTargetServer::grip() {
+int PutServer::grip() {
     int ret = 0;
 
     vector<double> position = {0, -0.08, -0.2, 0, 0, orientation};
@@ -218,7 +204,7 @@ int TrackTargetServer::grip() {
     return 0;
 }
 
-int TrackTargetServer::put() {
+int PutServer::put() {
     ros::spinOnce();
     int goalNum = -1;
     int ret = 0;
@@ -265,7 +251,7 @@ int TrackTargetServer::put() {
     return ret;
 }
 
-int TrackTargetServer::finish() {
+int PutServer::finish() {
     int ret = 0;
 
     vector<double> homeJ = {180, -33.8431, 105.578, -26.74, 90, 0};
@@ -275,13 +261,12 @@ int TrackTargetServer::finish() {
 
     return ret;
 }
-int TrackTargetServer::aborted() { return 0; }
+int PutServer::aborted() { return 0; }
 
-void TrackTargetServer::goodsCallBack(const process::store::ConstPtr& goods) {
+void PutServer::goodsCallBack(const process::store::ConstPtr& goods) {
     this->goodsList = *goods;
 }
 
-void TrackTargetServer::missionCallBack(
-    const process::mission::ConstPtr& mission) {
+void PutServer::missionCallBack(const process::mission::ConstPtr& mission) {
     objId = mission->object_id;
 }

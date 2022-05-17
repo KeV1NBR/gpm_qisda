@@ -7,6 +7,7 @@
 
 #include <vector>
 
+#include "amr/amr_info.h"
 #include "process/mission.h"
 class NavigateServer {
    public:
@@ -22,8 +23,20 @@ class NavigateServer {
     void missionCallBack(const process::mission::ConstPtr& mission);
 
     ros::Publisher navigatePublisher;
+    ros::Publisher movePublisher;
+    ros::Subscriber agvSubscriber;
+    void agvCallBack(const amr::amr_info::ConstPtr& info);
 
-    geometry_msgs::Twist goalPosition;
+    void move(std::vector<double> pos);
+    void nav(int posNum);
+    void waitForIdle();
+    bool isMoving;
+
+    int agvPos;
+    int agvPrePos;
+
+    std::vector<float> agvXYZ;
+    std::vector<double> rebaseValue;
 
     bool check;
 };

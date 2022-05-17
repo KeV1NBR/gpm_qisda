@@ -31,6 +31,10 @@ agv_pos:
     rz: 30
     x: 30
     y: 30
+  '21':
+    rz: -1.8
+    x: 2.0151
+    y: 0.298
 rosdistro: 'noetic
 
   '

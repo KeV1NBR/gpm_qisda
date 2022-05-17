@@ -1,0 +1,85 @@
+agv_pos:
+  '1':
+    rz: 30
+    x: 30
+    y: 30
+  '2':
+    rz: 30
+    x: 30
+    y: 30
+  '20':
+    rz: 177.8
+    x: 2.0843
+    y: 2.5019
+  '21':
+    rz: -1.9
+    x: 2.0186
+    y: 0.286
+  '3':
+    rz: 30
+    x: 30
+    y: 30
+  '4':
+    rz: 30
+    x: 30
+    y: 30
+  '5':
+    rz: 30
+    x: 30
+    y: 30
+  '6':
+    rz: 30
+    x: 30
+    y: 30
+  '7':
+    rz: 30
+    x: 30
+    y: 30
+  '8':
+    rz: 30
+    x: 30
+    y: 30
+arm_pos:
+  put:
+    '0':
+      rz: 90
+      x: -0.1
+      y: 0.12
+      z: -0.05
+    '1':
+      rz: 90
+      x: -0.2
+      y: 0.12
+      z: -0.05
+    '2':
+      rz: 90
+      x: -0.3
+      y: 0.13
+      z: -0.05
+    '3':
+      rz: -90
+      x: -0.1
+      y: -0.06
+      z: -0.05
+    '4':
+      rz: -90
+      x: -0.2
+      y: -0.06
+      z: -0.05
+    '5':
+      rz: -90
+      x: -0.3
+      y: -0.06
+      z: -0.05
+rosdistro: 'noetic
+
+  '
+roslaunch:
+  uris:
+    host_qrobot_nuc11phi7__36101: http://qrobot-NUC11PHi7:36101/
+    host_qrobot_nuc11phi7__43129: http://qrobot-NUC11PHi7:43129/
+    host_qrobot_nuc11phi7__44813: http://qrobot-NUC11PHi7:44813/
+rosversion: '1.15.14
+
+  '
+run_id: 63b58238-b66e-11ec-a3c5-1d1873dd1aa0
