@@ -51,6 +51,7 @@ TrackTargetServer::TrackTargetServer(string actionName)
     orientation = .0;
     targetNum = -1;
     objId = -1;
+    agvPos = -1;
 
     state = INIT;
     isFinish = false;
@@ -73,81 +74,98 @@ void TrackTargetServer::executeCallBack(const process::fsmGoalConstPtr& goal) {
 
     state = INIT;
 
-    while (isFinish == false) {
-        switch (state) {
-            case INIT: {
-                ROS_INFO("STATE EXTRANGE: INIT");
-                ret = init();
-                state = TARGET_ESTIMATE;
-                break;
-            }
-            case TARGET_ESTIMATE: {
-                ROS_INFO("STATE EXTRANGE: TARGET_ESTIMATE");
-                ret = targetEstimate();
-                if (fabs(error[0] + error[1]) > 0.005 || targetNum == -1) {
-                    state = TRACKING;
-                } else {
-                    state = GRIP;
+    if (this->agvPos != 22) {
+        while (isFinish == false) {
+            switch (state) {
+                case INIT: {
+                    ROS_INFO("STATE EXTRANGE: INIT");
+                    ret = init();
+                    state = TARGET_ESTIMATE;
+                    break;
                 }
-                break;
-            }
-            case TRACKING: {
-                ROS_INFO("STATE EXTRANGE: TRACKING");
-                ret = tracking();
-                state = TARGET_ESTIMATE;
-                break;
-            }
-            case GRIP: {
-                ROS_INFO("STATE EXTRANGE: GRIP");
-                ret = grip();
-                state = PUT;
-                break;
-            }
-            case PUT: {
-                ROS_INFO("STATE EXTRANGE: PUT");
-                ret = put();
-                state = FINISH;
-                break;
-            }
-            case FINISH: {
-                ROS_INFO("STATE EXTRANGE: FINISH");
-                ret = finish();
-                isFinish = true;
-                ROS_INFO("WAITING FOR REQUEST");
-                server.setSucceeded();
-                break;
-            }
-            case ABORTED: {
-                ROS_ERROR("ABORTED");
-                ret = aborted();
-                isFinish = true;
-                server.setAborted();
+                case TARGET_ESTIMATE: {
+                    ROS_INFO("STATE EXTRANGE: TARGET_ESTIMATE");
+                    ret = targetEstimate();
+                    if (fabs(error[0] + error[1]) > 0.005 || targetNum == -1) {
+                        state = TRACKING;
+                    } else {
+                        state = GRIP;
+                    }
+                    break;
+                }
+                case TRACKING: {
+                    ROS_INFO("STATE EXTRANGE: TRACKING");
+                    ret = tracking();
+                    state = TARGET_ESTIMATE;
+                    break;
+                }
+                case GRIP: {
+                    ROS_INFO("STATE EXTRANGE: GRIP");
+                    ret = grip();
+                    state = PUT;
+                    break;
+                }
+                case PUT: {
+                    ROS_INFO("STATE EXTRANGE: PUT");
+                    ret = put();
+                    state = FINISH;
+                    break;
+                }
+                case FINISH: {
+                    ROS_INFO("STATE EXTRANGE: FINISH");
+                    ret = finish();
+                    isFinish = true;
+                    ROS_INFO("WAITING FOR REQUEST");
+                    server.setSucceeded();
+                    break;
+                }
+                case ABORTED: {
+                    ROS_ERROR("ABORTED");
+                    ret = aborted();
+                    isFinish = true;
+                    server.setAborted();
 
-                break;
+                    break;
+                }
+                default: {
+                    isFinish = true;
+                    ROS_ERROR("error state entry");
+                    server.setAborted();
+                    break;
+                }
             }
-            default: {
-                isFinish = true;
-                ROS_ERROR("error state entry");
-                server.setAborted();
-                break;
+            if (ret < 0) {
+                state = ABORTED;
             }
-        }
-        if (ret < 0) {
-            state = ABORTED;
         }
     }
+    server.setSucceeded();
 }
 
 int TrackTargetServer::init() {
     int ret = 0;
 
     tm.gripperOpen();
-    vector<double> position = {237.729, 5.10428, 61.8752,
-                               23.0111, 90.0007, -32.2791};
-    ret = arm.move(position, 50, Arm::MoveType::Absolute, Arm::CtrlType::PTP,
-                   Arm::CoordType::JOINT);
-    tm.waitForIdle();
 
+    cerr << agvPos;
+    if (agvPos == 3 || agvPos == 6) {
+        vector<double> position = {123.863, 8.81798, 63.5105,
+                                   16.9489, 89.1952, 32.9309};
+
+        ret = arm.move(position, 50, Arm::MoveType::Absolute,
+                       Arm::CtrlType::PTP, Arm::CoordType::JOINT);
+
+        tm.waitForIdle();
+
+    } else {
+        vector<double> position = {237.729, 5.10428, 61.8752,
+                                   23.0111, 90.0007, -32.2791};
+
+        ret = arm.move(position, 50, Arm::MoveType::Absolute,
+                       Arm::CtrlType::PTP, Arm::CoordType::JOINT);
+
+        tm.waitForIdle();
+    }
     return ret;
 }
 int TrackTargetServer::targetEstimate() {
@@ -189,6 +207,11 @@ int TrackTargetServer::targetEstimate() {
 int TrackTargetServer::tracking() {
     int ret = 0;
     vector<double> position = {error[0], error[1], 0, 0, 0, 0};
+
+    if (agvPos == 3 || agvPos == 6) {
+        position[0] = -position[0];
+        position[1] = -position[1];
+    }
     ret = arm.move(position, 10, Arm::MoveType::Relative, Arm::CtrlType::PTP,
                    Arm::CoordType::CARTESIAN);
     tm.waitForIdle();
@@ -197,7 +220,12 @@ int TrackTargetServer::tracking() {
 int TrackTargetServer::grip() {
     int ret = 0;
 
-    vector<double> position = {0, -0.08, -0.2, 0, 0, orientation};
+    vector<double> position = {0, -0.08, -0.203, 0, 0, orientation};
+    if (agvPos == 3 || agvPos == 6) {
+        position[0] = -position[0];
+        position[1] = -position[1];
+        position[2] = -0.175;
+    }
     ret = arm.move(position, 10, Arm::MoveType::Relative, Arm::CtrlType::PTP,
                    Arm::CoordType::CARTESIAN);
     tm.waitForIdle();
@@ -205,7 +233,7 @@ int TrackTargetServer::grip() {
     tm.gripperClose();
     this_thread::sleep_for(chrono::milliseconds(3000));
 
-    position = {0, 0, 0.2, 0, 0, 0};
+    position = {0, 0, 0.175, 0, 0, 0};
     ret = arm.move(position, 10, Arm::MoveType::Relative, Arm::CtrlType::PTP,
                    Arm::CoordType::CARTESIAN);
     tm.waitForIdle();
@@ -284,4 +312,5 @@ void TrackTargetServer::goodsCallBack(const process::store::ConstPtr& goods) {
 void TrackTargetServer::missionCallBack(
     const process::mission::ConstPtr& mission) {
     objId = mission->object_id;
+    agvPos = mission->agv_pos;
 }

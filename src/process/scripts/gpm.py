@@ -4,73 +4,56 @@ from smach_ros import SimpleActionState
 
 from process.msg import *
 
+
 class Init(smach.State):
     def __init__(self):
-        smach.State.__init__(self, outcomes=['succeed','failed'])
+        smach.State.__init__(self, outcomes=["succeed", "failed"])
         self.counter = 0
 
     def execute(self, userdata):
-        ret = 'succeed'
+        ret = "succeed"
 
         return ret
 
 
 class Finish(smach.State):
     def __init__(self):
-        smach.State.__init__(self, outcomes=['succeed', 'failed'])
+        smach.State.__init__(self, outcomes=["succeed", "failed"])
 
     def execute(self, userdata):
-        ret = 'succeed'
+        ret = "succeed"
 
         return ret
 
 
-
-
 # main
 def main():
-    rospy.init_node('gpm_qisda')
+    rospy.init_node("gpm_qisda")
 
     # Create a SMACH state machine
-    mainFsm = smach.StateMachine(outcomes=['end', 'failed'])
+    mainFsm = smach.StateMachine(outcomes=["end", "failed"])
 
     # Open the container
     with mainFsm:
         # Add states to the container
-        smach.StateMachine.add('INIT', Init(),
-                               transitions={'succeed':'IDLE',
-                                            'failed':'failed'})
+        smach.StateMachine.add("INIT", Init(), transitions={"succeed": "IDLE", "failed": "failed"})
 
-        smach.StateMachine.add('IDLE',
-                               SimpleActionState('idle', fsmAction),
-                                  {'succeeded':'NAVIGATE',
-                                   'aborted': 'FINISH',
-                                   'preempted': 'failed'})
+        smach.StateMachine.add("IDLE", SimpleActionState("idle", fsmAction), {"succeeded": "NAVIGATE", "aborted": "FINISH", "preempted": "failed"})
 
-        smach.StateMachine.add('NAVIGATE',
-                               SimpleActionState('navigate', fsmAction),
-                                  {'succeeded':'TRACK_TARGET',
-                                   'aborted': 'failed',
-                                   'preempted': 'IDLE'})
+        smach.StateMachine.add("NAVIGATE", SimpleActionState("navigate", fsmAction), {"succeeded": "TRACK_TARGET", "aborted": "failed", "preempted": "IDLE"})
 
+        smach.StateMachine.add("TRACK_TARGET", SimpleActionState("track_target", fsmAction), {"succeeded": "FINISH", "aborted": "failed", "preempted": "failed"})
 
-        smach.StateMachine.add('TRACK_TARGET',
-                               SimpleActionState('track_target', fsmAction),
-                                  {'succeeded':'FINISH',
-                                   'aborted': 'failed',
-                                   'preempted': 'failed'})
-
-        smach.StateMachine.add('FINISH', Finish(),
-                               transitions={'succeed':'end',
-                                            'failed':'failed'})
+        smach.StateMachine.add("FINISH", Finish(), transitions={"succeed": "end", "failed": "failed"})
 
     # Execute SMACH plan
     outcome = mainFsm.execute()
 
-    if outcome == 'end':
-        rospy.loginfo('mainFsm completed')
-    elif outcome == 'failed':
-        rospy.logerr('mainFsm failed')
+    if outcome == "end":
+        rospy.loginfo("mainFsm completed")
+    elif outcome == "failed":
+        rospy.logerr("mainFsm failed")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

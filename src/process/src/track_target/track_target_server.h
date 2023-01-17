@@ -59,4 +59,6 @@ class TrackTargetServer {
     void goodsCallBack(const process::store::ConstPtr& goods);
     int targetNum;
     int objId;
+    int agvPos;
+
 };

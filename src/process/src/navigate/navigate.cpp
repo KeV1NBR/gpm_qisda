@@ -48,10 +48,14 @@ void NavigateServer::executeCallBack(const process::fsmGoalConstPtr& goal) {
             waitForIdle();
         }
 
-        if (this->agvPos >= 4) {
+        if(this->agvPos == 22){
+            move({1.4, .0, .0, .0, .0, 180.});
+            nav(22);
+        } else if (this->agvPos >= 4) {
             // move to pos 21
-            if (this->agvPrePos >= 4 && this->agvPrePos != 0) {
-            } else if (this->agvPrePos == 0) {
+            if (this->agvPrePos >= 4 && this->agvPrePos != 0 ) {
+            } else if (this->agvPrePos == 0 ) {
+                cout<<"first move"<<endl;
                 nav(21);
             } else {
                 move({1.4, .0, .0, .0, .0, 180.});

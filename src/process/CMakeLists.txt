@@ -218,15 +218,6 @@ add_executable(navigate_server src/navigate/navigate.cpp src/navigate/main.cpp)
 target_link_libraries(navigate_server ${Poco_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 add_dependencies(navigate_server ${${PROJECT_NAME}_EXPORTED_TARGETS})
-
-include_directories(src/put)
-
-add_executable(put_server src/put/put_server.cpp src/put/main.cpp)
-
-target_link_libraries(put_server moveit_lib tm_lib pid realsense_lib object_degree yaml-cpp  ${DARKNET_LIBRARIES} ${realsense2_LIBRARY} ${OpenCV_LIBS} ${Poco_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
-
-add_dependencies(put_server ${${PROJECT_NAME}_EXPORTED_TARGETS})
-
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
